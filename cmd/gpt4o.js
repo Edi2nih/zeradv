@@ -2,18 +2,22 @@ const axios = require('axios');
 
 module.exports = {
     name: 'gpt4o',
-    execute(api, event) {
-        const query = event.body;
-        const uid = event.senderID;
+    async execute(api, event, args) {
+        try {
+            const query = args.join(' ');
+            const uid = event.senderID; // You can modify this UID as needed
 
-        // Panggil API
-        axios.get(`https://kaiz-apis.gleeze.com/api/gpt-4o-pro?q=${encodeURIComponent(query)}&uid=${uid}`)
-            .then(response => {
-                api.sendMessage(response.data.response, event.threadID);
-            })
-            .catch(error => {
-                console.error(error);
-                api.sendMessage('Terjadi kesalahan saat memproses permintaan Anda.', event.threadID);
-            });
+            const response = await axios.get(`https://kaiz-apis.gleeze.com/api/gpt-4o?q=${encodeURIComponent(query)}&uid=${uid}`);
+            const reply = response.data.response;
+
+            if (reply) {
+                api.sendMessage(reply, event.threadID);
+            } else {
+                api.sendMessage('Gagal mendapatkan respon dari API.', event.threadID);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            api.sendMessage(`Terjadi kesalahan saat mengakses API: ${error}`, event.threadID);
+        }
     }
 };
